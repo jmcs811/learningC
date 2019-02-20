@@ -4,3 +4,37 @@ Die 2 = 2
 Die 3 = 3
 Die 4 = 2
 Die 5 = 3
+Roll 1
+Die 1 = 3
+Die 2 = 4
+Die 3 = 4
+Die 4 = 5
+Die 5 = 5
+Roll 2
+Die 1 = 2
+Die 2 = 1
+Die 3 = 5
+Die 4 = 2
+Die 5 = 2
+=====
+Roll 1
+Die 1 = 1
+Die 2 = 3
+Roll 2
+Die 1 = 5
+Die 2 = 5
+Roll 3
+Die 1 = 3
+Die 2 = 5
+=====
+=====
+=====
+=====
+5 raised to the 2 power is 25
+=====
+=====
+The volume is 27
+=====
+=====
+The radius is 28.26
+=====
