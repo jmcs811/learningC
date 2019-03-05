@@ -24,14 +24,13 @@ void printString(char* str[], int size) {
 }
 
 //102_5
-void getUserInput(char finalString[], int length) {
+int getUserInput(char finalString[], int length) {
 
     if (!fgets(finalString, sizeof(finalString), stdin)){
         exit(-1);
     } else {
         if (!strchr(finalString, '\n')){
-            while (fgets(finalString, sizeof(finalString), stdin) && !strchr(finalString, '\n'))
-            ;
+            while (fgets(finalString, sizeof(finalString), stdin) && !strchr(finalString, '\n'));
         } else {
             char *chk;
             int tmp = (int) strtol(finalString, &chk, 10);
@@ -43,7 +42,6 @@ void getUserInput(char finalString[], int length) {
             }
         }
     }
-    return 0;
 }
 //102_6
 // void flushStdIn() {
