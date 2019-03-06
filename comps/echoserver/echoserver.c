@@ -1,47 +1,49 @@
 #include "echoserver.h"
-
-int main(int argc, char const *argv[]) {
+ 
+int main(int argc, char *argv[]) {
     int sockFd = 0, clientFd = 0, bytesReceived = 0, bytesSent = 0;
-    struct sockaddr_in adddr = {0};
+ 
+    struct sockaddr_in addr = {0};
     char *buf = NULL;
-
-    if(argc != 3) {
-        printf("***Correct Usage***\n./echoserver <ip_addr> <port>\n");
+    if (argc != 3) {
+        printf("***USAGE***\n./echoserver.h <ipaddr> <port>\nYou Must Specify The Port\n");    
         exit(EXIT_FAILURE);
     }
-
+   
     //create a socket that can connect with TCP/IP
     if ((sockFd = SocketDemoUtils_createTcpSocket()) == -1) {
         exit(EXIT_FAILURE);
     }
-
-    //TODO: populate addr variable with the port and ip addr
-    struct sockaddr_in my_addr;
-    SocketDemoUtils_populateAddrInfo(argv[2], argv[1], &my_addr);
-
-    //TODO: bind the socket to the ip addr and port
-    printf("start bind");
-    SocketDemoUtils_bind(sockFd, &my_addr);
-    printf("end bind");
-
-    //TODO: set up the socket to be listening
+ 
+    //populate the addr variable with the port and ip address
+    SocketDemoUtils_populateAddrInfo(argv[2], argv[1], &addr);
+ 
+    //bind the socket to the id address and port
+    SocketDemoUtils_bind(&sockFd, &addr);
+ 
+    //set upthe socket to be listening
     SocketDemoUtils_listen(sockFd);
-
+   
+ 
     while(1) {
         //TODO: accept connection
-
-        //TODO: once conn is accepted recieve entire message
-        // from the client then send it back
-        while (1) {
-            //TODO: allocate memory for recieving message
-
-            //TODO: recieve the message until it has been completely recieved
-
+        clientFd = SocketDemoUtils_accept(sockFd, &addr);
+ 
+        //TODO: once connection is accepted, receive entire message
+        // from the client and then send it back
+        //SocketDemoUtils_recv();
+   
+        while(1) {
+            //TODO: allocate memory for receiveing
+           
+            //TODO: receive the message until it has been completly recieved
+ 
             //TODO: send the message to the client
-
-            //TODO: clean up the buffer to avoid mem leak
+ 
+            //TODO: clena up buffer memory to aavoid memory leak
+ 
         }
-        //TODO: shutdown the conn with client (gracefully)
+        //TODO: shutdown connection with client gracefully
+        //close();
     }
-    return 0;
 }
