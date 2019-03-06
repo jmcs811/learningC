@@ -1,3 +1,6 @@
 .vscode
 *.o
 
+comps/echoserver/echoserver
+comps/echoserver/echoserver.o
+comps/echoserver/socketutils.o
