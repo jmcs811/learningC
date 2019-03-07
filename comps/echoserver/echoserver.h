@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <string.h>
+#include <unistd.h>
 
 int SocketDemoUtils_createTcpSocket();
 int SocketDemoUtils_populateAddrInfo(char *port, char *ipAddr, struct sockaddr_in *addr);

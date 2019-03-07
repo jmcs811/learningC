@@ -23,7 +23,6 @@ int SocketDemoUtils_createTcpSocket() {
 int SocketDemoUtils_populateAddrInfo(char *port, char *ipAddr, struct sockaddr_in *addr) {
     short shortPort = atoi(port);
     addr->sin_family = AF_INET;
-    printf("%d", shortPort);
     inet_pton(AF_INET, ipAddr, &(addr->sin_addr));
     addr->sin_port = htons(shortPort);
     return 0;

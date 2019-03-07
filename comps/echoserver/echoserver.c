@@ -5,6 +5,8 @@ int main(int argc, char *argv[]) {
  
     struct sockaddr_in addr = {0};
     char *buf = NULL;
+    char *hello = "Hello from client";
+    char buffer[100] = {0};
     if (argc != 3) {
         printf("***USAGE***\n./echoserver.h <ipaddr> <port>\nYou Must Specify The Port\n");    
         exit(EXIT_FAILURE);
@@ -25,15 +27,20 @@ int main(int argc, char *argv[]) {
     SocketDemoUtils_listen(sockFd);
    
  
-    while(1) {
+    //while(1) {
         //TODO: accept connection
         clientFd = SocketDemoUtils_accept(sockFd, &addr);
+        int valread;
+        valread = read(clientFd, buffer, 100);
+        printf("%s", buffer);
+        send(clientFd, hello, strlen(hello), 0);
+        printf("message sent");
  
         //TODO: once connection is accepted, receive entire message
         // from the client and then send it back
         //SocketDemoUtils_recv();
    
-        while(1) {
+        //while(1) {
             //TODO: allocate memory for receiveing
            
             //TODO: receive the message until it has been completly recieved
@@ -42,8 +49,9 @@ int main(int argc, char *argv[]) {
  
             //TODO: clena up buffer memory to aavoid memory leak
  
-        }
+        //}
         //TODO: shutdown connection with client gracefully
         //close();
-    }
+    //}
+    close(clientFd);
 }
