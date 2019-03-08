@@ -18,23 +18,27 @@ int main(int argc, char *argv[]) {
     }
  
     //populate the addr variable with the port and ip address
-    SocketDemoUtils_populateAddrInfo(argv[2], argv[1], &addr);
+    if (SocketDemoUtils_populateAddrInfo(argv[2], argv[1], &addr) != 0) {
+        printf("ADDR INFO NOT UPDATED\n");
+        exit(EXIT_FAILURE);
+    }
  
     //bind the socket to the id address and port
-    SocketDemoUtils_bind(&sockFd, &addr);
+    if (SocketDemoUtils_bind(&sockFd, &addr) != 0) {
+        printf("BIND FAILUED\n");
+        exit(EXIT_FAILURE);
+    }
  
     //set upthe socket to be listening
-    SocketDemoUtils_listen(sockFd);
+    if (SocketDemoUtils_listen(sockFd) != 0) {
+        printf("LISTEN FAILED");
+        exit(EXIT_FAILURE);
+    }
    
  
-    //while(1) {
+    while(1) {
         //TODO: accept connection
         clientFd = SocketDemoUtils_accept(sockFd, &addr);
-        int valread;
-        valread = read(clientFd, buffer, 100);
-        printf("%s", buffer);
-        send(clientFd, hello, strlen(hello), 0);
-        printf("message sent");
  
         //TODO: once connection is accepted, receive entire message
         // from the client and then send it back
@@ -52,6 +56,6 @@ int main(int argc, char *argv[]) {
         //}
         //TODO: shutdown connection with client gracefully
         //close();
-    //}
+    }
     close(clientFd);
 }
