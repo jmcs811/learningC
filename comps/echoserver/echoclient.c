@@ -1,32 +1,41 @@
 #include "echoserver.h"
-
+ 
 int main(int argc, char *argv[])
 {
-    struct sockaddr_in client_addr, serv_addr;
-    int sockFd;
-    char *hello = "Hello from client";
-    char buffer[100] = {0};
-
+    int serverFd = 0;
+    int valread = 0;
+    char *hello = "Hello, world!\n";
+    char buffer[1024] = {0};
+    struct sockaddr_in serv_addr = {0};
+ 
     if (argc != 3) {
         printf("***USAGE***\n./echoclient <ipaddr> <port>\n");
+    }
+ 
+    if ((serverFd = SocketDemoUtils_createTcpSocket()) == -1) {
+        printf("error in creating client socket\n");
         exit(EXIT_FAILURE);
     }
-
-    if ((sockFd = SocketDemoUtils_createTcpSocket()) == -1) {
+ 
+    if (SocketDemoUtils_populateAddrInfo(argv[2], argv[1], &serv_addr) != 0) {
+        printf("Error Updating addr info\n");
         exit(EXIT_FAILURE);
     }
-
-    SocketDemoUtils_populateAddrInfo(argv[2], argv[1], &serv_addr);
-
-    if (connect(sockFd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        printf("\nConnection failed\n");
-        return -1;
+ 
+    int connStatus = connect(serverFd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr));
+    if (connStatus < 0) {
+        printf("Error Connecting");
+        exit(EXIT_FAILURE);
     }
-
-    send(sockFd, hello, strlen(hello), 0);
-    printf("sent message");
-    read(sockFd, buffer, 100);
-    printf("%s", buffer);
-
+ 
+    while(1) {
+        fgets(buffer, sizeof(buffer), stdin);
+ 
+        int sent = send(serverFd, buffer, strlen(buffer), 0);
+        printf("message sent\n%d bytes sent\n", sent);
+        valread = read(serverFd, buffer, 1024);
+        printf("%s\n", buffer);
+    }
+   
     return 0;
 }
