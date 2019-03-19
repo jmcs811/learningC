@@ -5,7 +5,7 @@ int main(int argc, char *argv[])
     int serverFd = 0;
     int valread = 0;
     char *hello = "Hello, world!\n";
-    char buffer[1024] = {0};
+    char buffer[BUFF_SIZE] = {0};
     struct sockaddr_in serv_addr = {0};
  
     if (argc != 3) {
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
  
         int sent = send(serverFd, buffer, strlen(buffer), 0);
         printf("message sent\n%d bytes sent\n", sent);
-        valread = read(serverFd, buffer, 1024);
+        valread = read(serverFd, buffer, BUFF_SIZE);
         printf("%s\n", buffer);
     }
    

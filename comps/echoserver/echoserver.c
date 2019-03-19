@@ -3,13 +3,11 @@
 int main(int argc, char *argv[]) {
     int sockFd = 0, clientFd = 0, bytesReceived = 0, bytesSent = 0;
     int valread = 0;
-    char buffer[1024] = {0};
+    char buffer[BUFF_SIZE] = {0};
     struct sockaddr_in addr = {0};
     struct sockaddr_in clientAddr;
     char *buf = NULL;
- 
-    memset(&clientAddr, 0, sizeof(struct sockaddr));
- 
+  
     if (argc != 3) {
         printf("***USAGE***\n./echoserver <ipaddr> <port>\nYou Must Specify The Port\n");    
         exit(EXIT_FAILURE);
@@ -60,7 +58,7 @@ int main(int argc, char *argv[]) {
  
             //TODO: clean up buffer memory to avoid memory leak
  
-            int valRead = recv(clientFd, buffer, 1024, 0);
+            int valRead = recv(clientFd, buffer, BUFF_SIZE, 0);
  
             if (!valRead) break;
  
@@ -69,11 +67,11 @@ int main(int argc, char *argv[]) {
                 exit(EXIT_FAILURE);
             }
  
-            printf("Client said: %s\n", buffer);
+            printf("Client said: %s", buffer);
  
             int sent = send(clientFd, buffer, valRead, 0);
         }
-        memset(buffer, 0, sizeof(buffer));
+        memset(buffer, 0, BUFF_SIZE);
         //TODO: shutdown connection with client gracefully
         close(clientFd);
    }

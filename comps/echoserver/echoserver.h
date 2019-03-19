@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+
+#define BUFF_SIZE 1024
  
 //protos
 int SocketDemoUtils_createTcpSocket();
