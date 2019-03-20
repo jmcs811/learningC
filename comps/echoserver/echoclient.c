@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
         int sent = send(serverFd, buffer, strlen(buffer), 0);
         printf("message sent\n%d bytes sent\n", sent);
         valread = read(serverFd, buffer, BUFF_SIZE);
-        printf("%s\n", buffer);
+        printf("Server said: %s\n", buffer);
     }
    
     return 0;
