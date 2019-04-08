@@ -1,31 +1,16 @@
-#include "echoserver.h"
- 
- /**********************
- * ****Create Socket****
- * ********************/
-int SocketDemoUtils_createTcpSocket() {
-    int sockFd = 0;
-   
-    sockFd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockFd == -1) {
-        perror("socket");
-        return -1;
-    }
-    int enable = 1;
-    if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) != 0) {
-        printf("Error setting sockopt\n");
-        return -1;
-    }
-    //printf("%d sockfd In function\n", sockFd);
-    return sockFd;
-}
+#include "socketutils.h"
  
  /***********************
  * ***Update ADDR INFO***
  * *********************/
 int SocketDemoUtils_populateAddrInfo(char *port, char *ipAddr, struct sockaddr_in *addr) {
     // convert char* to int and chack range
-    int intPort = atoi(port);
+    int intPort;
+    if (getIntInput(port, &intPort) != 0) {
+        printf("Error getting input\n");
+        return 1;
+    }
+ 
     if (isValidPort(intPort) != 1) {
         printf("INVALID PORT\n");
         return 1;
@@ -42,26 +27,67 @@ int SocketDemoUtils_populateAddrInfo(char *port, char *ipAddr, struct sockaddr_i
     return 0;
 }
  
+ 
  /************************
- * ********BIND***********
- * **********************/
-int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
-    if (bind(sockFd, (struct sockaddr *) addr, sizeof(struct sockaddr)) != 0) {
-        printf("Error Binding\n");
+ * *****NETWORK INIT******
+ * **********************
+ * Basic socket craeted
+ * and addr info updated
+ */
+ 
+int SocketDemoUtils_networkInit(char *ip, char *port, struct sockaddr_in *addr) {
+     // create socket
+    int sock = 0;
+ 
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == -1) {
+        perror("socket");
         return -1;
     }
-    return 0;
+ 
+    // set seockopt reuseable
+    int enable = 1;
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) != 0) {
+        printf("Error setting sockopt\n");
+        return -1;
+    }
+ 
+    // update addr information
+    if (SocketDemoUtils_populateAddrInfo(port, ip, addr) != 0) {
+        return -1;
+    }
+    return sock;
 }
  
  /************************
- * ********LISTEN*********
- * **********************/
-int SocketDemoUtils_listen(int sockFd) {
-    if (listen(sockFd, 5) != 0) {
-        printf("Error listening\n");
-        return 1;
+ * ******SERVER INIT******
+ * **********************
+ * Calls networkInit to
+ * create socket and update
+ * addr info. Then calls
+ * bind and listen
+ */
+int SocketDemoUtils_serverInit(char *ip, char *port, struct sockaddr_in *addr) {
+    // create socket
+    int sock = 0;
+ 
+    sock = SocketDemoUtils_networkInit(ip, port, addr);
+    if (sock < 0) {
+        return -1;
     }
-    return 0;
+ 
+    // bind socket
+    if (bind(sock, (struct sockaddr *)addr, sizeof(struct sockaddr)) != 0) {
+        printf("error binding\n");
+        return -1;
+    }
+ 
+    // listen
+    if (listen(sock, 5) != 0) {
+        printf("error listening\n");
+        return -1;
+    }
+    return sock;
 }
  
  /************************
@@ -82,15 +108,26 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
  /************************
  * *********RECV**********
  * **********************/
-int SocketDemoUtils_recv(int sockFd, char **buf) {
-    return 0;
+int SocketDemoUtils_recv(int sockFd, char *buf) {
+    int numBytes = recv(sockFd, buf, BUFF_SIZE, 0);
+    if (numBytes < 0) {
+        printf("Error recv'ing\n");
+        return -1;
+    }
+    return numBytes;
 }
  
  /************************
  * *********SEND**********
  * **********************/
 int SocketDemoUtils_send(int sockFd, char *buf, int numBytes){
-    return 0;
+    int sent = send(sockFd, buf, numBytes, 0);
+ 
+    if (sent < 0) {
+        printf("Error Sending\n");
+        return -1;
+    }
+    return sent;
 }
  
  /************************
@@ -124,4 +161,46 @@ int isValidIp(char *ip, struct sockaddr_in *addr) {
         return 1;
     }
     return 0;
+}
+ 
+ /************************
+ * *******CLEANUP*********
+ * **********************/
+int SocketDemoUtils_cleanUp(int sockFd) {
+    if (shutdown(sockFd, SHUT_RDWR) != 0) {
+        return 1;
+    }
+    return 0;
+}
+ 
+int getIntInput(char *finalString, int *result) {
+    long tmp;
+    char *endptr;
+ 
+    // Convert String to long int
+    tmp = strtol(finalString, &endptr, 10);
+ 
+    // check for various possible errors
+    if (((tmp == LONG_MAX || tmp == LONG_MIN))) {
+        perror("strotol");
+        return 1;
+    }
+ 
+    if (endptr == finalString) {
+        //fprintf(stderr, "No digits were found\n");
+        return 1;
+    }
+ 
+    if (!(*endptr == '\0' || *endptr == '\n')) {
+        fprintf(stderr, "Invalid characters\n");
+        return 1;
+    }
+ 
+    if (tmp >= INT_MIN && tmp <= INT_MAX) {
+        *result = tmp;
+        return 0;
+    } else {
+        fprintf(stderr, "Number out of range\n");
+        return 1;
+    }
 }

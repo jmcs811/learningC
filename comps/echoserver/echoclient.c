@@ -1,41 +1,50 @@
-#include "echoserver.h"
+#include "socketutils.h"
  
 int main(int argc, char *argv[])
 {
     int serverFd = 0;
     int valread = 0;
-    char *hello = "Hello, world!\n";
     char buffer[BUFF_SIZE] = {0};
     struct sockaddr_in serv_addr = {0};
  
+    /*
+    * Make sure enough args are passed to the program
+    */
     if (argc != 3) {
-        printf("***USAGE***\n./echoclient <ipaddr> <port>\n");
+        printf("***USAGE***\n./echoclient <ipaddr> <port>\nYou Must Specify The Port\n");
+        return 1;    
     }
  
-    if ((serverFd = SocketDemoUtils_createTcpSocket()) == -1) {
-        printf("error in creating client socket\n");
-        exit(EXIT_FAILURE);
-    }
- 
-    if (SocketDemoUtils_populateAddrInfo(argv[2], argv[1], &serv_addr) != 0) {
-        printf("Error Updating addr info\n");
-        exit(EXIT_FAILURE);
+    /*
+    * Creates socket and populates addr information. Returns FD.
+    * Ready for connect call
+    */
+    serverFd = SocketDemoUtils_networkInit(argv[1], argv[2], &serv_addr);
+    if (serverFd < 0) {
+        return 1;
     }
  
     int connStatus = connect(serverFd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr));
     if (connStatus < 0) {
-        printf("Error Connecting");
-        exit(EXIT_FAILURE);
+        SocketDemoUtils_cleanUp(serverFd);
+        return 1;
     }
  
     while(1) {
+        printf("Enter Message: ");
         fgets(buffer, sizeof(buffer), stdin);
  
-        int sent = send(serverFd, buffer, strlen(buffer), 0);
-        printf("message sent\n%d bytes sent\n", sent);
-        valread = read(serverFd, buffer, BUFF_SIZE);
-        printf("Server said: %s\n", buffer);
+        int sent = SocketDemoUtils_send(serverFd, (char *)&buffer, strlen(buffer));
+        if (sent < 0) {
+            break;
+        }
+        memset(buffer, 0, BUFF_SIZE);
+        valread = SocketDemoUtils_recv(serverFd, (char *)&buffer);
+        if (valread < 0) {
+            break;
+        }
+        printf("Server said: %s", buffer);
     }
-   
+    SocketDemoUtils_cleanUp(serverFd);
     return 0;
 }
