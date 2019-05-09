@@ -4,3 +4,5 @@
 comps/echoserver/echoserver
 comps/echoserver/echoserver.o
 comps/echoserver/socketutils.o
+comps/echoserver/libtest.a
+comps/echoserver/echoclient
