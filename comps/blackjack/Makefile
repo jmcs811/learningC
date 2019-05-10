@@ -9,4 +9,4 @@ blackjack.o: blackjack.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 clean:
-	rm -rf *.o sniffer
+	rm -rf *.o blackjack
