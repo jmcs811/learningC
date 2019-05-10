@@ -8,3 +8,6 @@ OBJ = echoserver.o socketutils.o
 
 echoserver: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
+
+clean:
+	rm -rf *.o echoserver echoclient
