@@ -27,6 +27,7 @@ typedef struct Card {
 // protos
 void createDeck(Card* deck);
 int createPlayer(Player* player);
+int createDealer(Player* dealer);
 int startGame(Player *dealer,  Player *player, Card *deck);
 int randomNum(int, int);
 int drawNewCard(Card *deck);
@@ -35,5 +36,7 @@ void hit();
 void printHand(Player *player, Card *deck);
 void shutdown(Player *dealer, Player *player, Card *deck);
 int  playerDraw(Card *deck, Player *player, int printCard);
-void hitOrStand(Card *deck, Player *player, Player *dealer);
+int hitOrStand(Card *deck, Player *player, Player *dealer);
 int dealerLoop(Card *deck, Player *dealer);
+int resetGame(Player *dealer, Player *player, Card *deck);
+int resetPlayer(Player *player);
