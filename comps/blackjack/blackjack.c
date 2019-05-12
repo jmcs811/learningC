@@ -1,10 +1,5 @@
 #include "blackjack.h"
  
-//void createDeck(Card* deck);
-// Max num of cards for 2 player
-// game is 18 cards.... pretty sure
-int previousCards[MAX_CARDS_DRAWN];
- 
 int main() {
     srand(time(NULL));
     Card *deck = calloc(52, sizeof(Card));
@@ -22,41 +17,41 @@ int main() {
     * start the main game loop
     */
     createDeck(deck);
-    if(createPlayer(player) == 1) {
+
+    if(initPlayer(player) == 1) {
         shutdown(dealer, player, deck);
         return 0;
     }    
     
-    createDealer(dealer);
+    initDealer(dealer);
 
+    printf("Welcome to Blackjack!\n");
+    printf("Starting Game....\n");
     while(1) {
-        if (startGame(dealer, player, deck) == -1) {
+        if (gameLoop(dealer, player, deck) == -1) {
             break;
         }
 
-        // prints players hand on exit
+        // prints players hand after game is over
+        printf("***Players Hand***\n");
         printHand(player, deck);
+
+        // prints dealers hand on exit
+        printf("***Dealers Hand***\n");
+        printHand(dealer, deck);
 
         // Clear out player data except name
         resetGame(dealer, player, deck);
 
-        // prints dealers hand on exit
-        //printHand(dealer, deck);
     }
+
+    printf("Thanks for playing\n");
 
     // free all of the mallocs
     shutdown(dealer, player, deck);
     return 0;
 }
- 
-void shutdown(Player *dealer, Player *player, Card *deck) {
-    free(player->playerName);
-    free(player);
-    free(deck);
-    free(dealer);
-    return;
-}
- 
+
 void createDeck(Card* deck) {
     /*
     * Instantiates the deck with 13 (2-11) of each
@@ -76,13 +71,12 @@ void createDeck(Card* deck) {
         }
     }
 }
- 
- 
+
 /*
 * Create the player instance
 * set name and hand score
 */
-int createPlayer(Player* player) {
+int initPlayer(Player* player) {
     char *userName = malloc(BUFF_SIZE); // TODO: free at end
     if (userName == NULL) {
         return 1;
@@ -95,21 +89,20 @@ int createPlayer(Player* player) {
     player->counter = 0;
     return 0;
 }
- 
-int createDealer(Player* dealer) {
-    // char *dealerName = malloc(7);
-    // strcpy(dealer, "dealer\0");
-    // dealer->playerName = dealerName;
+
+/*
+* do not need to set player name. only
+* need to init the score and counter
+*/
+int initDealer(Player* dealer) {
     dealer->handScore = 0;
     dealer->counter = 0;
     return 0;
 }
- 
+
 // start the main game loop
-int startGame(Player *dealer, Player *player, Card *deck) {
-    printf("Welcome to Blackjack!\n");
-    printf("Starting Game....\n");
- 
+int gameLoop(Player *dealer, Player *player, Card *deck) {
+
     /*
     * Deal two cards to player and dealer
     * print both of the player cards but
@@ -138,10 +131,34 @@ int startGame(Player *dealer, Player *player, Card *deck) {
     if (hitOrStand(deck, player, dealer) == -1) {
         return -1;
     }
-    printf("Thanks for playing\n");
     return 0;
 }
 
+/*
+* Will iterate over the numbers in the
+* players current hand array and prints
+* out the type and value. The number in
+* the array corresponds to a card in the
+* deck of cards.
+*/
+void printHand(Player *player, Card *deck) {
+    //printf("***Players Hand***\n");
+    for (int i = 0; i < player->counter; i++) {
+        Card *temp = deck;
+        temp += player->currentHand[i];
+        printf("%s of %s\n", temp->nameValue, temp->type);
+    }
+    printf("******************\n");
+}
+ 
+void shutdown(Player *dealer, Player *player, Card *deck) {
+    free(player->playerName);
+    free(player);
+    free(deck);
+    free(dealer);
+    return;
+}
+ 
 /*
 * randomly pick a card and check if the card has been drawn 
 * if not, then add the number to the players current hand, 
@@ -202,23 +219,30 @@ int drawNewCard(Card *deck) {
 int hitOrStand(Card *deck, Player *player, Player *dealer) {
     printf("%s's score is %d\n", player->playerName, player->handScore);
     while(1) {
-        printf("Hit or Stand or Score\n");
+        printf("hit or stand or score or quit\n");
         char buffer[BUFF_SIZE] = {0};
  
         fgets(buffer, sizeof(buffer), stdin);
         buffer[strlen(buffer)-1] = '\0';
+        // if (inputToLower(buffer) != 0) {
+        //     continue;
+        // }
         if (strcmp(buffer, "score") == 0) {
-            printf("%s's score is %d", player->playerName, player->handScore);
+            printf("%s's score is %d\n", player->playerName, player->handScore);
             printHand(player, deck);
+
         } else if (strcmp(buffer, "stand") == 0) {
             break;
+
         } else if (strcmp(buffer, "hit") == 0) {
             playerDraw(deck, player, 1);
             if (player->handScore > 21) {
-                printf("Game Over!\n You Busted!!!\n Your score was %d\n", player->handScore);
+                printf("Game Over!\n You Busted!!!\n Your score was: %d\n \ 
+                Dealers score was: %d\n", player->handScore, dealer->handScore);
                 return 0;
             }
             printf("New score is %d\n", player->handScore);
+
         } else if (strcmp(buffer, "quit") == 0) {
             return -1;
         }
@@ -234,6 +258,7 @@ int hitOrStand(Card *deck, Player *player, Player *dealer) {
         printf("You Win!!!\nYou Win!!!\nYou Win!!!\nYou Win!!!\nYou Win!!!\n");
         return 0;
     }
+    sleep(2);
     return 0;
 }
 
@@ -277,27 +302,19 @@ int resetPlayer(Player *player) {
 }
  
 /*
-* Will iterate over the numbers in the
-* players current hand array and prints
-* out the type and value. The number in
-* the array corresponds to a card in the
-* deck of cards.
-*/
-void printHand(Player *player, Card *deck) {
-    printf("***Players Hand***\n");
-    for (int i = 0; i < player->counter; i++) {
-        Card *temp = deck;
-        temp += player->currentHand[i];
-        printf("%s of %s\n", temp->nameValue, temp->type);
-    }
-    printf("******************\n");
-}
- 
-/*
 * Returns a random number between the
 * lower and upper params that are passed
 */
 int randomNum(int lower, int upper) {
     int num = (rand() % (upper - lower + 1)) + lower;
     return num;
+}
+
+int inputToLower(char *buffer) {
+    char temp;
+    for(int i = 0; i < strlen(buffer); i++) {
+        temp = buffer[i];
+        putchar(tolower(temp));
+    }
+    return 0;
 }

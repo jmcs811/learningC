@@ -26,9 +26,9 @@ typedef struct Card {
  
 // protos
 void createDeck(Card* deck);
-int createPlayer(Player* player);
-int createDealer(Player* dealer);
-int startGame(Player *dealer,  Player *player, Card *deck);
+int initPlayer(Player* player);
+int initDealer(Player* dealer);
+int gameLoop(Player *dealer,  Player *player, Card *deck);
 int randomNum(int, int);
 int drawNewCard(Card *deck);
 int randomNum(int, int);
