@@ -224,9 +224,7 @@ int hitOrStand(Card *deck, Player *player, Player *dealer) {
  
         fgets(buffer, sizeof(buffer), stdin);
         buffer[strlen(buffer)-1] = '\0';
-        // if (inputToLower(buffer) != 0) {
-        //     continue;
-        // }
+
         if (strcmp(buffer, "score") == 0) {
             printf("%s's score is %d\n", player->playerName, player->handScore);
             printHand(player, deck);
@@ -237,7 +235,7 @@ int hitOrStand(Card *deck, Player *player, Player *dealer) {
         } else if (strcmp(buffer, "hit") == 0) {
             playerDraw(deck, player, 1);
             if (player->handScore > 21) {
-                printf("Game Over!\n You Busted!!!\n Your score was: %d\n \ 
+                printf("Game Over!\n You Busted!!!\n Your score was: %d\n \
                 Dealers score was: %d\n", player->handScore, dealer->handScore);
                 return 0;
             }
@@ -308,13 +306,4 @@ int resetPlayer(Player *player) {
 int randomNum(int lower, int upper) {
     int num = (rand() % (upper - lower + 1)) + lower;
     return num;
-}
-
-int inputToLower(char *buffer) {
-    char temp;
-    for(int i = 0; i < strlen(buffer); i++) {
-        temp = buffer[i];
-        putchar(tolower(temp));
-    }
-    return 0;
 }
