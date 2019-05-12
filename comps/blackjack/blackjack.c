@@ -16,14 +16,17 @@ int main() {
     * the player objects, and
     * start the main game loop
     */
-    createDeck(deck);
+    if (createDeck(deck) != 0) {
+        shutdown(dealer, player, deck);
+    }
 
     if(initPlayer(player) == 1) {
         shutdown(dealer, player, deck);
-        return 0;
     }    
     
-    initDealer(dealer);
+    if (initDealer(dealer) != 0) {
+        shutdown(dealer, player, deck);
+    }
 
     printf("Welcome to Blackjack!\n");
     printf("Starting Game....\n");
@@ -34,14 +37,23 @@ int main() {
 
         // prints players hand after game is over
         printf("***Players Hand***\n");
-        printHand(player, deck);
+        if (printHand(player, deck) != 0) {
+            printf("Error Printing Cards\n");
+            shutdown(dealer, player, deck);
+        }
 
         // prints dealers hand on exit
         printf("***Dealers Hand***\n");
-        printHand(dealer, deck);
+        if (printHand(dealer, deck) != 0) {
+            printf("Error Printing Cards\n");
+            shutdown(dealer, player, deck);
+        }
 
         // Clear out player data except name
-        resetGame(dealer, player, deck);
+        if (resetGame(dealer, player, deck) != 0) {
+            printf("Error restting game\n");
+            shutdown(dealer, player, deck);
+        }
 
     }
 
@@ -52,7 +64,7 @@ int main() {
     return 0;
 }
 
-void createDeck(Card* deck) {
+int createDeck(Card* deck) {
     /*
     * Instantiates the deck with 13 (2-11) of each
     * of the types of cards(hearts, diamonds, ...)
@@ -70,6 +82,7 @@ void createDeck(Card* deck) {
             deck++;
         }
     }
+    return 0;
 }
 
 /*
@@ -128,7 +141,7 @@ int gameLoop(Player *dealer, Player *player, Card *deck) {
     * After that, the dealer will hit until
     * he has at least 17.
     */
-    if (hitOrStand(deck, player, dealer) == -1) {
+    if (hitStandOrQuit(deck, player, dealer) == -1) {
         return -1;
     }
     return 0;
@@ -141,22 +154,23 @@ int gameLoop(Player *dealer, Player *player, Card *deck) {
 * the array corresponds to a card in the
 * deck of cards.
 */
-void printHand(Player *player, Card *deck) {
-    //printf("***Players Hand***\n");
+int printHand(Player *player, Card *deck) {
+    printf("******************\n");
     for (int i = 0; i < player->counter; i++) {
         Card *temp = deck;
         temp += player->currentHand[i];
         printf("%s of %s\n", temp->nameValue, temp->type);
     }
     printf("******************\n");
+    return 0;
 }
  
-void shutdown(Player *dealer, Player *player, Card *deck) {
+int shutdown(Player *dealer, Player *player, Card *deck) {
     free(player->playerName);
     free(player);
     free(deck);
     free(dealer);
-    return;
+    exit(EXIT_SUCCESS);
 }
  
 /*
@@ -216,7 +230,7 @@ int drawNewCard(Card *deck) {
 * score: will print the players hand score
 * and print the cards in the players hand
 */
-int hitOrStand(Card *deck, Player *player, Player *dealer) {
+int hitStandOrQuit(Card *deck, Player *player, Player *dealer) {
     printf("%s's score is %d\n", player->playerName, player->handScore);
     while(1) {
         printf("hit or stand or score or quit\n");
