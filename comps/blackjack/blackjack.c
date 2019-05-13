@@ -19,51 +19,35 @@ int main() {
     if (createDeck(deck) != 0) {
         shutdown(dealer, player, deck);
     }
-
+ 
     if(initPlayer(player) == 1) {
         shutdown(dealer, player, deck);
     }    
-    
+   
     if (initDealer(dealer) != 0) {
         shutdown(dealer, player, deck);
     }
-
-    printf("Welcome to Blackjack!\n");
-    printf("Starting Game....\n");
+ 
     while(1) {
         if (gameLoop(dealer, player, deck) == -1) {
             break;
         }
-
-        // prints players hand after game is over
-        printf("***Players Hand***\n");
-        if (printHand(player, deck) != 0) {
-            printf("Error Printing Cards\n");
-            shutdown(dealer, player, deck);
-        }
-
-        // prints dealers hand on exit
-        printf("***Dealers Hand***\n");
-        if (printHand(dealer, deck) != 0) {
-            printf("Error Printing Cards\n");
-            shutdown(dealer, player, deck);
-        }
-
+ 
         // Clear out player data except name
         if (resetGame(dealer, player, deck) != 0) {
             printf("Error restting game\n");
             shutdown(dealer, player, deck);
         }
-
+ 
     }
-
+ 
     printf("Thanks for playing\n");
-
+ 
     // free all of the mallocs
     shutdown(dealer, player, deck);
     return 0;
 }
-
+ 
 int createDeck(Card* deck) {
     /*
     * Instantiates the deck with 13 (2-11) of each
@@ -71,7 +55,7 @@ int createDeck(Card* deck) {
     */
     char *types[4] = {"Hearts", "Diamonds", "Spades", "Clubs"};
     int values[13] = {2,3,4,5,6,7,8,9,10,10,10,10,11};
-    char *nameValues[13] = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "King", "Queen", "Ace"};
+    char *nameValues[13] = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"};
  
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 13; j++) {
@@ -84,7 +68,7 @@ int createDeck(Card* deck) {
     }
     return 0;
 }
-
+ 
 /*
 * Create the player instance
 * set name and hand score
@@ -102,7 +86,7 @@ int initPlayer(Player* player) {
     player->counter = 0;
     return 0;
 }
-
+ 
 /*
 * do not need to set player name. only
 * need to init the score and counter
@@ -112,27 +96,20 @@ int initDealer(Player* dealer) {
     dealer->counter = 0;
     return 0;
 }
-
+ 
 // start the main game loop
 int gameLoop(Player *dealer, Player *player, Card *deck) {
-
+ 
     /*
     * Deal two cards to player and dealer
     * print both of the player cards but
     * only the last dealer card.
     */
-    for (int i = 0; i < 2; i++) {
-        printf("%s draws: ", player->playerName);
-        playerDraw(deck, player, 1);
+   printUI(dealer, player, deck);
  
-        if (i == 0) {
-            printf("Dealer draws: ???\n");
-            playerDraw(deck, dealer, 0);
-            //sleep(1);
-        } else {
-            printf("Dealer draws: ");
-            playerDraw(deck, dealer, 1);
-        }
+    for (int i = 0; i < 2; i++) {
+        playerDraw(deck, player, dealer, 0);
+        playerDraw(deck, player, dealer, 1);
     }
  
     /*
@@ -146,7 +123,7 @@ int gameLoop(Player *dealer, Player *player, Card *deck) {
     }
     return 0;
 }
-
+ 
 /*
 * Will iterate over the numbers in the
 * players current hand array and prints
@@ -155,13 +132,11 @@ int gameLoop(Player *dealer, Player *player, Card *deck) {
 * deck of cards.
 */
 int printHand(Player *player, Card *deck) {
-    printf("******************\n");
     for (int i = 0; i < player->counter; i++) {
         Card *temp = deck;
         temp += player->currentHand[i];
-        printf("%s of %s\n", temp->nameValue, temp->type);
+        printf("    %s of %s\n", temp->nameValue, temp->type);
     }
-    printf("******************\n");
     return 0;
 }
  
@@ -174,28 +149,37 @@ int shutdown(Player *dealer, Player *player, Card *deck) {
 }
  
 /*
-* randomly pick a card and check if the card has been drawn 
-* if not, then add the number to the players current hand, 
-* and update the players handScore and set the choosen int 
-* to 1. Else, pick another number. 
+* randomly pick a card and check if the card has been drawn
+* if not, then add the number to the players current hand,
+* and update the players handScore and set the choosen int
+* to 1. Else, pick another number.
 */
-int  playerDraw(Card *deck, Player *player, int printCard) {
+int  playerDraw(Card *deck, Player *player, Player *dealer, int isDealer) {
     int num = drawNewCard(deck);
-
-    // check for aces. use 1 if 11 will cause a bust
-    if (num == 12 || num == 25 || num == 38 || num == 51) {
-        if (player->handScore + 11 > 21) {
-            player->handScore += 1;
-        } else { player->handScore += deck[num].value; }
+ 
+    if (isDealer) {
+    dealer->handScore += deck[num].value;
+    dealer->currentHand[dealer->counter] = num;
+    dealer->counter++;
+ 
+    if (dealer->handScore > 21) {
+        if (numberOfAces(dealer, deck) > 0) {
+            dealer->handScore -= 10;
+        }
+    }
     } else {
         player->handScore += deck[num].value;
+        player->currentHand[player->counter] = num;
+        player->counter++;
+ 
+        if (player->handScore > 21) {
+            if (numberOfAces(player, deck) > 0) {
+                player->handScore -= 10;
+            }
+        }
     }
-    
-    player->currentHand[player->counter] = num;
-    player->counter++;
-    if (printCard == 1) {
-        printf("%s of %s\n", deck[num].nameValue, deck[num].type);
-    }
+
+    printUI(dealer, player, deck);
     sleep(1);
     return num;
 }
@@ -219,83 +203,115 @@ int drawNewCard(Card *deck) {
     deck[num].choosen = 1;
     return num;
 }
-
+ 
 /*
-* prompt user to enter 1 of 3 commands
+* prompt user to enter 1 of 4 commands
 * hit: will draw a new card and update the
-* player structre. 
+* player struct.
 *
 * stand: will end the players turn
 *
 * score: will print the players hand score
 * and print the cards in the players hand
+*
+* quit: will end the game
 */
 int hitStandOrQuit(Card *deck, Player *player, Player *dealer) {
-    printf("%s's score is %d\n", player->playerName, player->handScore);
     while(1) {
-        printf("hit or stand or score or quit\n");
         char buffer[BUFF_SIZE] = {0};
  
         fgets(buffer, sizeof(buffer), stdin);
         buffer[strlen(buffer)-1] = '\0';
-
-        if (strcmp(buffer, "score") == 0) {
-            printf("%s's score is %d\n", player->playerName, player->handScore);
-            printHand(player, deck);
-
-        } else if (strcmp(buffer, "stand") == 0) {
+ 
+       if (strcmp(buffer, "stand") == 0 || strcmp(buffer, "2") == 0) {
             break;
-
-        } else if (strcmp(buffer, "hit") == 0) {
-            playerDraw(deck, player, 1);
+ 
+        } else if (strcmp(buffer, "hit") == 0 || strcmp(buffer, "1") == 0) {
+            playerDraw(deck, player, dealer, 0);
             if (player->handScore > 21) {
-                printf("Game Over!\n You Busted!!!\n Your score was: %d\n \
-                Dealers score was: %d\n", player->handScore, dealer->handScore);
+                printLoseUI(dealer, player, deck);
                 return 0;
             }
-            printf("New score is %d\n", player->handScore);
-
-        } else if (strcmp(buffer, "quit") == 0) {
+        } else if (strcmp(buffer, "quit") == 0 || strcmp(buffer, "3") == 0) {
             return -1;
         }
     }
  
-    int dealerScore = dealerLoop(deck, dealer);
- 
+    while(1) {
+        if (dealer->handScore < 17) {
+            //printf("Dealer draws: ");
+            playerDraw(deck, player, dealer, 1);
+        } else { break; }
+    }
+  
     // check who won
-    if (dealerScore > player->handScore && dealerScore <= 21) {
-        printf("Dealer Wins\n You Lose\n You Lose\n You Lose\n You Lose\n");
+    if (dealer->handScore > player->handScore && dealer->handScore <= 21) {
+        printLoseUI(dealer, player, deck);
         return 0;
     } else {
-        printf("You Win!!!\nYou Win!!!\nYou Win!!!\nYou Win!!!\nYou Win!!!\n");
+        printWinUI(dealer, player, deck);
         return 0;
     }
     sleep(2);
-    return 0;
-}
-
-/*
-* if the dealers hand score is under 17
-* the dealer will continue to draw until
-* he is over 17 or he busts
-*/
-int dealerLoop(Card *deck, Player *dealer) {
-    while(1) {
-        if (dealer->handScore < 17) {
-            printf("Dealer draws: ");
-            playerDraw(deck, dealer, 1);
-        } else { break; }
-    }
-    printf("Dealer Score is %d\n", dealer->handScore);
     return dealer->handScore;
 }
+ 
+void printUI(Player *dealer, Player *player, Card *deck) {
+    clearTerm();
+    printf("****************************************\n");
+    printf("***************BlackJACK****************\n");
+    printf("****************************************\n");
+    printf("\n Dealer Score: %d    ", dealer->handScore);
+    printf("%s's Score: %d\n\n",player->playerName, player->handScore);
+    printf(" Dealers Hand:\n");
+    printHand(dealer, deck);
+    printf("\n %s's Hand:\n", player->playerName);
+    printHand(player, deck);
+    printf("\n[1]hit  [2]stand  [3]quit\n");
+ 
+}
 
+void printWinUI(Player *dealer, Player *player, Card *deck) {
+    clearTerm();
+    printf("****************************************\n");
+    printf("***************BlackJACK****************\n");
+    printf("****************************************\n");
+    printf("  You Win! You Win! You Win! You Win!\n");
+    printf("  You Win! You Win! You Win! You Win!\n");
+    printf("\n Dealer Score: %d    ", dealer->handScore);
+    printf("%s's Score: %d\n\n",player->playerName, player->handScore);
+    printf(" Dealers Hand:\n");
+    printHand(dealer, deck);
+    printf("\n %s's Hand:\n", player->playerName);
+    printHand(player, deck);
+    sleep(5);
+}
+
+void printLoseUI(Player *dealer, Player *player, Card *deck) {
+    clearTerm();
+    printf("****************************************\n");
+    printf("***************BlackJACK****************\n");
+    printf("****************************************\n");
+    printf("You Lose! You Lose! You Lose! You Lose!\n");
+    printf("You Lose! You Lose! You Lose! You Lose!\n");
+    printf("\n Dealer Score: %d    ", dealer->handScore);
+    printf("%s's Score: %d\n\n",player->playerName, player->handScore);
+    printf(" Dealers Hand:\n");
+    printHand(dealer, deck);
+    printf("\n %s's Hand:\n", player->playerName);
+    printHand(player, deck);
+    sleep(5);
+}
+ 
 int resetGame(Player *dealer, Player *player, Card *deck) {
     //reset choosen values
-    for (int i = 0; i < 52; i++) {
+    for (int i = 0; i < 51; i++) {
         Card *temp = deck;
         temp += i;
         temp[i].choosen = 0;
+        if (temp->nameValue == "Ace") {
+            temp->value = 11;
+        }
     }
 
     // reset player structs
@@ -303,7 +319,7 @@ int resetGame(Player *dealer, Player *player, Card *deck) {
     resetPlayer(dealer);
     return 0;
 }
-
+ 
 int resetPlayer(Player *player) {
     for (int i = 0; i < player->counter; i++) {
         player->currentHand[i] = 0;
@@ -313,6 +329,20 @@ int resetPlayer(Player *player) {
     return 0;
 }
  
+int numberOfAces(Player *player, Card *deck) {
+    int counter = 0;
+    for (int i = 0; i < player->counter; i++) {
+        Card *temp = deck;
+        temp += player->currentHand[i];
+        if (temp->value == 11) {
+            temp->value = 1;
+            counter++;
+            break;
+        }
+    }
+    return counter;
+}
+ 
 /*
 * Returns a random number between the
 * lower and upper params that are passed
@@ -320,4 +350,8 @@ int resetPlayer(Player *player) {
 int randomNum(int lower, int upper) {
     int num = (rand() % (upper - lower + 1)) + lower;
     return num;
+}
+ 
+void clearTerm() {
+    printf("\e[1;1H\e[2J");
 }
