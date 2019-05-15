@@ -42,3 +42,6 @@ int resetPlayer(Player *player);
 void printUI(Player *dealer, Player *player, Card *deck);
 int numberOfAces(Player *player, Card *deck);
 void clearTerm();
+void printUI(Player *dealer, Player *player, Card *deck);
+void printWinUI(Player *dealer, Player *player, Card *deck);
+void printLoseUI(Player *dealer, Player *player, Card *deck);

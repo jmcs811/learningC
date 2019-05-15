@@ -94,6 +94,9 @@ int initPlayer(Player* player) {
 int initDealer(Player* dealer) {
     dealer->handScore = 0;
     dealer->counter = 0;
+    for(int i = 0; i < MAX_CARDS_DRAWN; i++) {
+        dealer->currentHand[i] = 0;
+    }
     return 0;
 }
  
@@ -135,7 +138,7 @@ int printHand(Player *player, Card *deck) {
     for (int i = 0; i < player->counter; i++) {
         Card *temp = deck;
         temp += player->currentHand[i];
-        printf("    %s of %s\n", temp->nameValue, temp->type);
+        printf("\t%s of %s\n", temp->nameValue, temp->type);
     }
     return 0;
 }
@@ -178,7 +181,7 @@ int  playerDraw(Card *deck, Player *player, Player *dealer, int isDealer) {
             }
         }
     }
-
+ 
     printUI(dealer, player, deck);
     sleep(1);
     return num;
@@ -243,7 +246,7 @@ int hitStandOrQuit(Card *deck, Player *player, Player *dealer) {
             playerDraw(deck, player, dealer, 1);
         } else { break; }
     }
-  
+ 
     // check who won
     if (dealer->handScore > player->handScore && dealer->handScore <= 21) {
         printLoseUI(dealer, player, deck);
@@ -261,16 +264,26 @@ void printUI(Player *dealer, Player *player, Card *deck) {
     printf("****************************************\n");
     printf("***************BlackJACK****************\n");
     printf("****************************************\n");
-    printf("\n Dealer Score: %d    ", dealer->handScore);
+    printf("\n Dealer Score: %d    ", dealer->handScore - deck[dealer->currentHand[0]].value);
     printf("%s's Score: %d\n\n",player->playerName, player->handScore);
     printf(" Dealers Hand:\n");
-    printHand(dealer, deck);
+ 
+    // dont print first card for dealer
+    for (int i = 0; i < dealer->counter; i++) {
+        Card *temp = deck;
+        temp += dealer->currentHand[i];
+        if (i == 0) {
+            printf("\t????\n");
+        } else {
+            printf("\t%s of %s\n", temp->nameValue, temp->type);
+        }
+    }
     printf("\n %s's Hand:\n", player->playerName);
     printHand(player, deck);
     printf("\n[1]hit  [2]stand  [3]quit\n");
  
 }
-
+ 
 void printWinUI(Player *dealer, Player *player, Card *deck) {
     clearTerm();
     printf("****************************************\n");
@@ -286,7 +299,7 @@ void printWinUI(Player *dealer, Player *player, Card *deck) {
     printHand(player, deck);
     sleep(5);
 }
-
+ 
 void printLoseUI(Player *dealer, Player *player, Card *deck) {
     clearTerm();
     printf("****************************************\n");
@@ -309,11 +322,11 @@ int resetGame(Player *dealer, Player *player, Card *deck) {
         Card *temp = deck;
         temp += i;
         temp[i].choosen = 0;
-        if (temp->nameValue == "Ace") {
+        if (strcmp(temp->nameValue, "Ace") == 0) {
             temp->value = 11;
         }
     }
-
+ 
     // reset player structs
     resetPlayer(player);
     resetPlayer(dealer);
